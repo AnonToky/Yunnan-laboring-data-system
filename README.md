@@ -5,23 +5,23 @@
 ## 1. 环境要求
 
 - Node.js 18+
-- MySQL 8+
+- 无需安装 MySQL（默认使用 SQLite 本地文件库）
 
 ## 2. 数据库准备
 
-1. 创建数据库（示例）：
-
-```sql
-CREATE DATABASE yunnan_laboring_demo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-2. 复制环境变量：
+1. 复制环境变量：
 
 ```bash
 cp .env.example .env
 ```
 
-3. 按实际数据库账号修改 `.env` 中的 `DATABASE_URL`。
+2. 默认无需修改 `.env`（已配置 SQLite）：
+
+```env
+DATABASE_URL="file:./prisma/dev.db"
+```
+
+> 如需改为其他数据库（例如 MySQL），可修改 `prisma/schema.prisma` 的 `provider` 与 `.env` 中 `DATABASE_URL`。
 
 ## 3. 启动步骤
 
@@ -37,7 +37,7 @@ npm run dev
 
 > 说明：
 > - `db:push` 会自动建表（基于 Prisma Schema）。
-> - 仓库同时提供了 `prisma/migrations/0001_init/migration.sql` 作为建表脚本。
+> - SQLite 数据文件会自动生成在 `prisma/dev.db`。
 
 ## 4. 默认账号（密码统一为 `123456`）
 
@@ -111,3 +111,9 @@ npm run dev
 - 统一仪表盘：`/dashboard`
   - 按角色展示企业填报、市级审核、省级审核与上报、通知模块
 
+## 9. 前后端结构说明
+
+- 这是一个 **Node.js 单体项目**（不是前后端分离仓库）。
+- 后端：`Express + Prisma`（API、鉴权、业务流程都在 `src/server.js`）。
+- 前端：`EJS` 服务端渲染模板（`src/views/*.ejs`）+ 浏览器端脚本（`src/public` 静态资源由 `/static` 提供）。
+- 结论：技术栈整体是 Node.js 生态，但前端不是 React/Vue 这类独立 SPA 项目。
