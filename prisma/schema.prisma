@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  enterprise
+  city
+  province
+}
+
+enum FilingStatus {
+  draft
+  pending_province
+  approved
+  rejected
+}
+
+enum ReportStatus {
+  draft
+  pending_city
+  city_rejected
+  pending_province
+  province_rejected
+  approved
+  reported
+}
+
+enum AuditLevel {
+  city
+  province
+}
+
+enum AuditAction {
+  approve
+  reject
+  report
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  username     String     @unique
+  passwordHash String
+  role         Role
+  regionCode   String
+  enterpriseId Int?
+  createdAt    DateTime   @default(now())
+
+  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id])
+  auditLogs    ReportAuditLog[]
+}
+
+model Enterprise {
+  id                   Int        @id @default(autoincrement())
+  regionCode           String
+  orgCode              String
+  name                 String
+  type                 String
+  industry             String
+  business             String
+  contactPerson        String
+  address              String
+  postalCode           String
+  phone                String
+  fax                  String
+  email                String?
+  filingStatus         FilingStatus @default(draft)
+  provinceAuditComment String?
+  provinceAuditAt      DateTime?
+  provinceAuditorId    Int?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  users   User[]
+  reports Report[]
+
+  @@unique([regionCode, orgCode])
+}
+
+model SurveyPeriod {
+  id             Int      @id @default(autoincrement())
+  periodKey      String   @unique
+  startAt        DateTime
+  endAt          DateTime
+  submitDeadline DateTime
+}
+
+model Report {
+  id               Int         @id @default(autoincrement())
+  enterpriseId     Int
+  periodKey        String
+  initialEmployees Int
+  currentEmployees Int
+  otherReason      String?
+  decreaseType     String?
+  mainReason       String?
+  mainReasonDesc   String?
+  secondReason     String?
+  secondReasonDesc String?
+  thirdReason      String?
+  thirdReasonDesc  String?
+  status           ReportStatus @default(draft)
+  submitTime       DateTime?
+  cityAuditComment String?
+  cityAuditAt      DateTime?
+  cityAuditorId    Int?
+  provinceAuditComment String?
+  provinceAuditAt  DateTime?
+  provinceAuditorId Int?
+  reportedAt       DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id])
+  auditLogs  ReportAuditLog[]
+
+  @@unique([enterpriseId, periodKey])
+}
+
+model ReportAuditLog {
+  id        Int         @id @default(autoincrement())
+  reportId  Int
+  level     AuditLevel
+  action    AuditAction
+  comment   String?
+  auditorId Int
+  createdAt DateTime    @default(now())
+
+  report   Report @relation(fields: [reportId], references: [id])
+  auditor  User   @relation(fields: [auditorId], references: [id])
+}
+
+model Notice {
+  id            Int      @id @default(autoincrement())
+  title         String
+  content       String
+  publisherUnit String
+  publisherRole Role
+  regionScope   String
+  createdAt     DateTime @default(now())
+}
+
+model Dictionary {
+  id         Int    @id @default(autoincrement())
+  type       String
+  code       String
+  value      String
+  parentCode String?
+  sortNo     Int    @default(0)
+
+  @@unique([type, code])
+}

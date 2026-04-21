@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MVP Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      textarea, input, select { margin: 4px 0; width: 100%; padding: 6px; }
+      .row { margin-bottom: 12px; }
+      .panel { border: 1px solid #ddd; padding: 16px; margin-bottom: 16px; border-radius: 8px; }
+      button { margin-top: 6px; }
+      pre { background: #f7f7f7; padding: 10px; overflow:auto; max-height: 220px; }
+    </style>
+  </head>
+  <body>
+    <h2>欢迎，<%= user.username %>（<%= user.role %>）</h2>
+    <p>地区：<%= user.regionCode %></p>
+    <button onclick="logout()">退出登录</button>
+
+    <div class="panel" id="enterprisePanel" style="display:none;">
+      <h3>企业端：备案维护与提交</h3>
+      <div id="profileRegion"></div>
+      <input id="orgCode" placeholder="组织机构代码" />
+      <input id="name" placeholder="企业名称" />
+      <input id="type" placeholder="企业性质（如 private/state）" />
+      <input id="industry" placeholder="所属行业（如 manufacture/service）" />
+      <input id="business" placeholder="主要经营业务" />
+      <input id="contactPerson" placeholder="联系人" />
+      <input id="address" placeholder="联系地址" />
+      <input id="postalCode" placeholder="邮编" />
+      <input id="phone" placeholder="联系电话" />
+      <input id="fax" placeholder="传真" />
+      <input id="email" placeholder="邮箱（可选）" />
+      <button onclick="saveProfile()">保存备案草稿</button>
+      <button onclick="submitProfile()">提交备案</button>
+      <h3>企业端：月度填报</h3>
+      <input id="periodKey" placeholder="调查期，如 2026-03" />
+      <input id="initialEmployees" type="number" placeholder="建档期就业人数" />
+      <input id="currentEmployees" type="number" placeholder="调查期就业人数" />
+      <input id="otherReason" placeholder="其他原因" />
+      <input id="decreaseType" placeholder="减少类型" />
+      <input id="mainReason" placeholder="主要原因" />
+      <textarea id="mainReasonDesc" placeholder="主要原因说明"></textarea>
+      <input id="secondReason" placeholder="次要原因" />
+      <textarea id="secondReasonDesc" placeholder="次要原因说明"></textarea>
+      <input id="thirdReason" placeholder="第三原因" />
+      <textarea id="thirdReasonDesc" placeholder="第三原因说明"></textarea>
+      <button onclick="saveReport()">保存填报草稿</button>
+      <button onclick="submitReport()">提交市级审核</button>
+      <button onclick="loadMyReports()">刷新我的历史填报</button>
+      <pre id="myReports"></pre>
+    </div>
+
+    <div class="panel" id="cityPanel" style="display:none;">
+      <h3>市级：待审列表</h3>
+      <input id="cityEnterpriseName" placeholder="企业名筛选" />
+      <input id="cityPeriodKey" placeholder="调查期筛选" />
+      <button onclick="loadCityReports()">查询待审</button>
+      <input id="cityReportId" type="number" placeholder="报告ID" />
+      <textarea id="cityComment" placeholder="审核备注/退回原因"></textarea>
+      <button onclick="cityReview('approve')">市级通过</button>
+      <button onclick="cityReview('reject')">市级退回</button>
+      <pre id="cityReports"></pre>
+    </div>
+
+    <div class="panel" id="provincePanel" style="display:none;">
+      <h3>省级：企业备案审核</h3>
+      <button onclick="loadFilings()">刷新备案列表</button>
+      <input id="filingId" type="number" placeholder="企业ID" />
+      <textarea id="filingComment" placeholder="备案审核备注/退回原因"></textarea>
+      <button onclick="reviewFiling('approve')">备案通过</button>
+      <button onclick="reviewFiling('reject')">备案退回</button>
+      <pre id="filings"></pre>
+
+      <h3>省级：终审与上报</h3>
+      <input id="provinceRegionCode" placeholder="地区筛选，如 530100" />
+      <input id="provincePeriodKey" placeholder="调查期筛选" />
+      <input id="provinceStatus" placeholder="状态筛选，如 pending_province" />
+      <button onclick="loadProvinceReports()">查询终审列表</button>
+      <input id="provinceReportId" type="number" placeholder="报告ID" />
+      <textarea id="provinceComment" placeholder="终审备注/退回原因"></textarea>
+      <button onclick="provinceReview('approve')">省级通过</button>
+      <button onclick="provinceReview('reject')">省级退回</button>
+      <button onclick="provinceReport()">模拟上报部委</button>
+      <pre id="provinceReports"></pre>
+    </div>
+
+    <div class="panel">
+      <h3>通知发布与浏览</h3>
+      <input id="noticeTitle" placeholder="标题（<=50）" />
+      <textarea id="noticeContent" placeholder="内容（<=2000）"></textarea>
+      <input id="publisherUnit" placeholder="发布单位" />
+      <button onclick="publishNotice()">发布通知（仅市级/省级）</button>
+      <button onclick="loadNotices()">刷新通知列表</button>
+      <pre id="notices"></pre>
+    </div>
+
+    <pre id="result"></pre>
+
+    <script>
+      const role = '<%= user.role %>';
+      document.getElementById('enterprisePanel').style.display = role === 'enterprise' ? 'block' : 'none';
+      document.getElementById('cityPanel').style.display = role === 'city' ? 'block' : 'none';
+      document.getElementById('provincePanel').style.display = role === 'province' ? 'block' : 'none';
+
+      async function api(url, options = {}) {
+        const res = await fetch(url, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        return data;
+      }
+
+      async function logout() {
+        await api('/api/auth/logout', { method: 'POST' });
+        location.href = '/';
+      }
+
+      async function saveProfile() {
+        await api('/api/enterprise/profile/save', {
+          method: 'POST',
+          body: JSON.stringify({
+            orgCode: orgCode.value,
+            name: name.value,
+            type: type.value,
+            industry: industry.value,
+            business: business.value,
+            contactPerson: contactPerson.value,
+            address: address.value,
+            postalCode: postalCode.value,
+            phone: phone.value,
+            fax: fax.value,
+            email: email.value
+          })
+        });
+      }
+
+      async function submitProfile() {
+        await api('/api/enterprise/profile/submit', { method: 'POST' });
+      }
+
+      async function saveReport() {
+        await api('/api/enterprise/reports/save', {
+          method: 'POST',
+          body: JSON.stringify({
+            periodKey: periodKey.value,
+            initialEmployees: initialEmployees.value,
+            currentEmployees: currentEmployees.value,
+            otherReason: otherReason.value,
+            decreaseType: decreaseType.value,
+            mainReason: mainReason.value,
+            mainReasonDesc: mainReasonDesc.value,
+            secondReason: secondReason.value,
+            secondReasonDesc: secondReasonDesc.value,
+            thirdReason: thirdReason.value,
+            thirdReasonDesc: thirdReasonDesc.value
+          })
+        });
+      }
+
+      async function submitReport() {
+        await api('/api/enterprise/reports/submit', {
+          method: 'POST',
+          body: JSON.stringify({ periodKey: periodKey.value })
+        });
+      }
+
+      async function loadMyReports() {
+        const data = await api(`/api/enterprise/reports?periodKey=${encodeURIComponent(periodKey.value || '')}`);
+        if (data.code === 0) {
+          myReports.textContent = JSON.stringify(data.data, null, 2);
+        }
+      }
+
+      async function loadCityReports() {
+        const data = await api(`/api/city/reports?enterpriseName=${encodeURIComponent(cityEnterpriseName.value || '')}&periodKey=${encodeURIComponent(cityPeriodKey.value || '')}`);
+        if (data.code === 0) {
+          cityReports.textContent = JSON.stringify(data.data, null, 2);
+        }
+      }
+
+      async function cityReview(action) {
+        await api(`/api/city/reports/${cityReportId.value}/review`, {
+          method: 'POST',
+          body: JSON.stringify({ action, comment: cityComment.value })
+        });
+      }
+
+      async function loadFilings() {
+        const data = await api('/api/province/filings');
+        if (data.code === 0) filings.textContent = JSON.stringify(data.data, null, 2);
+      }
+
+      async function reviewFiling(action) {
+        await api(`/api/province/filings/${filingId.value}/review`, {
+          method: 'POST',
+          body: JSON.stringify({ action, comment: filingComment.value })
+        });
+      }
+
+      async function loadProvinceReports() {
+        const data = await api(`/api/province/reports?regionCode=${encodeURIComponent(provinceRegionCode.value || '')}&periodKey=${encodeURIComponent(provincePeriodKey.value || '')}&status=${encodeURIComponent(provinceStatus.value || '')}`);
+        if (data.code === 0) {
+          provinceReports.textContent = JSON.stringify(data.data, null, 2);
+        }
+      }
+
+      async function provinceReview(action) {
+        await api(`/api/province/reports/${provinceReportId.value}/review`, {
+          method: 'POST',
+          body: JSON.stringify({ action, comment: provinceComment.value })
+        });
+      }
+
+      async function provinceReport() {
+        await api(`/api/province/reports/${provinceReportId.value}/report`, { method: 'POST' });
+      }
+
+      async function publishNotice() {
+        await api('/api/notices', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: noticeTitle.value,
+            content: noticeContent.value,
+            publisherUnit: publisherUnit.value
+          })
+        });
+      }
+
+      async function loadNotices() {
+        const data = await api('/api/notices');
+        if (data.code === 0) notices.textContent = JSON.stringify(data.data, null, 2);
+      }
+
+      async function init() {
+        const me = await api('/api/me');
+        if (me.code === 0 && me.data.enterprise) {
+          profileRegion.textContent = `所属地区（只读）: ${me.data.enterprise.regionCode}`;
+          orgCode.value = me.data.enterprise.orgCode || '';
+          name.value = me.data.enterprise.name || '';
+          type.value = me.data.enterprise.type || '';
+          industry.value = me.data.enterprise.industry || '';
+          business.value = me.data.enterprise.business || '';
+          contactPerson.value = me.data.enterprise.contactPerson || '';
+          address.value = me.data.enterprise.address || '';
+          postalCode.value = me.data.enterprise.postalCode || '';
+          phone.value = me.data.enterprise.phone || '';
+          fax.value = me.data.enterprise.fax || '';
+          email.value = me.data.enterprise.email || '';
+        }
+        await loadNotices();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
