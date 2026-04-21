@@ -117,3 +117,18 @@ npm run dev
 - 后端：`Express + Prisma`（API、鉴权、业务流程都在 `src/server.js`）。
 - 前端：`EJS` 服务端渲染模板（`src/views/*.ejs`）+ 浏览器端脚本（`src/public` 静态资源由 `/static` 提供）。
 - 结论：技术栈整体是 Node.js 生态，但前端不是 React/Vue 这类独立 SPA 项目。
+
+## 10. 技术选型表（与当前仓库实现一致）
+
+| 资源类型 | 选型方案 | 用途 |
+| :--- | :--- | :--- |
+| 操作系统 | Linux / macOS / Windows（Node.js 18+） | 应用运行环境 |
+| 数据库系统 | SQLite（Prisma，默认 `prisma/dev.db`） | 业务数据存储 |
+| 缓存系统 | 未使用独立缓存中间件 | 暂无（按需可扩展） |
+| 消息队列 | 未使用消息队列 | 暂无（当前流程为同步处理） |
+| 前端框架 | EJS 模板引擎 + 原生 JavaScript | 页面渲染与交互 |
+| 后端框架 | Node.js + Express 4 + Prisma ORM | API、鉴权与业务逻辑 |
+| 接口文档 | README 中维护接口清单（未集成 Swagger/OpenAPI） | 接口说明 |
+| 版本控制 | Git + GitHub | 源代码管理与协作 |
+| 项目管理 | GitHub Issues / Projects（仓库侧管理） | 任务跟踪 |
+| 持续集成 | 未配置 CI 工作流（`.github/workflows` 为空） | 暂无自动化流水线 |
