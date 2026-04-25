@@ -3,106 +3,830 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MVP Dashboard</title>
+    <title>业务仪表盘</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 20px; }
-      textarea, input, select { margin: 4px 0; width: 100%; padding: 6px; }
-      .row { margin-bottom: 12px; }
-      .panel { border: 1px solid #ddd; padding: 16px; margin-bottom: 16px; border-radius: 8px; }
-      button { margin-top: 6px; }
-      pre { background: #f7f7f7; padding: 10px; overflow:auto; max-height: 220px; }
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Manrope:wght@500;700&display=swap');
+
+      :root {
+        --bg: #edf2f7;
+        --surface: #ffffff;
+        --surface-soft: #f8fbff;
+        --line: #d6deea;
+        --ink: #10213a;
+        --muted: #5d6f8d;
+        --brand: #0069d9;
+        --brand-2: #0f8f72;
+        --warn: #c23f22;
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --shadow: 0 10px 28px rgba(16, 33, 58, 0.08);
+      }
+
+      .role-enterprise {
+        --brand: #0b66c3;
+        --brand-2: #0f8f72;
+      }
+
+      .role-city {
+        --brand: #9b4d00;
+        --brand-2: #7a6a00;
+      }
+
+      .role-province {
+        --brand: #5b3fc4;
+        --brand-2: #1f7db2;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: 'Noto Sans SC', sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 16%, rgba(0, 105, 217, 0.09), transparent 36%),
+          radial-gradient(circle at 88% 14%, rgba(15, 143, 114, 0.09), transparent 32%),
+          linear-gradient(160deg, #f8fbfe 0%, #ecf2f8 100%);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+      }
+
+      .mobile-nav {
+        display: none;
+      }
+
+      .backdrop {
+        display: none;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        border-top: 4px solid var(--brand);
+        padding: 26px 18px;
+        background: linear-gradient(170deg, #ffffff 0%, #f4f8fd 100%);
+      }
+
+      .logo {
+        font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pill {
+        margin-top: 16px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #bed2ef;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: #174c91;
+        background: #f2f7ff;
+      }
+
+      .menu {
+        margin-top: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .menu-item {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+
+      .menu-item.active {
+        border-color: var(--brand);
+        background: #eef4ff;
+      }
+
+      .menu-item strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .menu-item span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .content {
+        padding: 22px;
+      }
+
+      .quick-actions {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .quick-actions button {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+
+      .showcase {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: linear-gradient(160deg, #ffffff 0%, #f5f9ff 100%);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+
+      .showcase-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .showcase-head h3 {
+        margin: 0;
+        font-size: 17px;
+      }
+
+      .showcase-head span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+      }
+
+      .feature-btn {
+        border: 1px solid #c8d6ea;
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink);
+        padding: 12px;
+        text-align: left;
+      }
+
+      .feature-btn strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .feature-btn span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .feature-btn:hover {
+        border-color: var(--brand);
+        transform: translateY(-1px);
+      }
+
+      .feature-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(7, 16, 28, 0.42);
+        z-index: 45;
+        display: none;
+        padding: 18px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .feature-overlay.show {
+        display: flex;
+      }
+
+      .feature-modal {
+        width: min(780px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 20px 40px rgba(16, 33, 58, 0.24);
+        overflow: hidden;
+      }
+
+      .feature-modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        background: linear-gradient(130deg, #eaf2ff 0%, #eefaf7 100%);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .feature-modal-head h4 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .feature-modal-head button {
+        padding: 7px 12px;
+      }
+
+      .feature-modal-body {
+        padding: 16px;
+      }
+
+      .demo-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin: 10px 0;
+      }
+
+      .demo-kpi {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        background: #f7fbff;
+      }
+
+      .demo-kpi strong {
+        display: block;
+        font-size: 20px;
+        font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+      }
+
+      .demo-kpi span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: var(--shadow);
+        padding: 14px 16px;
+      }
+
+      .topbar h2 {
+        margin: 0;
+        font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+        font-size: 24px;
+      }
+
+      .meta {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .workspace {
+        margin-top: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+
+      .panel h3 {
+        margin: 0 0 12px;
+        font-size: 17px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: var(--surface-soft);
+        padding: 10px 11px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #78acff;
+        box-shadow: 0 0 0 3px rgba(0, 105, 217, 0.14);
+      }
+
+      textarea { min-height: 86px; resize: vertical; }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 9px 14px;
+        color: #fff;
+        background: var(--brand);
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.18s ease, filter 0.18s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.03);
+      }
+
+      .secondary {
+        background: var(--brand-2);
+      }
+
+      .danger {
+        background: var(--warn);
+      }
+
+      details.module {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: #fff;
+        padding: 10px;
+        margin-top: 10px;
+      }
+
+      details.module[open] {
+        background: #fbfdff;
+      }
+
+      details.module summary {
+        cursor: pointer;
+        list-style: none;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 8px;
+      }
+
+      details.module summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.module summary::before {
+        content: '▸';
+        display: inline-block;
+        margin-right: 8px;
+        color: var(--brand);
+        transition: transform 0.15s ease;
+      }
+
+      details.module[open] summary::before {
+        transform: rotate(90deg);
+      }
+
+      pre {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: #f7faff;
+        padding: 10px;
+        overflow: auto;
+        max-height: 230px;
+        font-size: 12px;
+      }
+
+      #result {
+        border: 1px dashed #b9c8dd;
+        background: #f3f7fd;
+      }
+
+      @media (max-width: 1024px) {
+        .shell { grid-template-columns: 1fr; }
+        .mobile-nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 14px;
+          border-bottom: 1px solid var(--line);
+          background: rgba(255, 255, 255, 0.96);
+          position: sticky;
+          top: 0;
+          z-index: 25;
+          backdrop-filter: blur(5px);
+        }
+
+        .mobile-nav strong {
+          font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+          font-size: 16px;
+        }
+
+        .mobile-nav button {
+          padding: 8px 12px;
+        }
+
+        .sidebar {
+          border-right: none;
+          border-bottom: 1px solid var(--line);
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: min(300px, 84vw);
+          z-index: 30;
+          transform: translateX(-105%);
+          transition: transform 0.2s ease;
+          box-shadow: 0 16px 32px rgba(16, 33, 58, 0.2);
+        }
+
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        .content {
+          padding: 14px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .backdrop.show {
+          display: block;
+          position: fixed;
+          inset: 0;
+          background: rgba(7, 16, 28, 0.36);
+          z-index: 20;
+        }
+      }
     </style>
   </head>
-  <body>
-    <h2>欢迎，<%= user.username %>（<%= user.role %>）</h2>
-    <p>地区：<%= user.regionCode %></p>
-    <button onclick="logout()">退出登录</button>
+  <body class="role-<%= user.role %>">
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <h1 class="logo">Yunnan Laboring</h1>
+        <p class="sub">就业失业数据采集管理端</p>
+        <span class="pill">当前角色：<%= user.role %></span>
+        <div class="menu">
+          <div class="menu-item <%= user.role === 'enterprise' ? 'active' : '' %>"><strong>企业填报</strong><span>备案信息与月度报告</span></div>
+          <div class="menu-item <%= user.role === 'city' || user.role === 'province' ? 'active' : '' %>"><strong>分级审核</strong><span>市级审核与省级终审</span></div>
+          <div class="menu-item"><strong>通知中心</strong><span>发布通知与可见范围管理</span></div>
+          <div class="menu-item"><strong>审计追踪</strong><span>审核日志与流程状态留痕</span></div>
+        </div>
+      </aside>
 
-    <div class="panel" id="enterprisePanel" style="display:none;">
-      <h3>企业端：备案维护与提交</h3>
-      <div id="profileRegion"></div>
-      <input id="orgCode" placeholder="组织机构代码" />
-      <input id="name" placeholder="企业名称" />
-      <input id="type" placeholder="企业性质（如 private/state）" />
-      <input id="industry" placeholder="所属行业（如 manufacture/service）" />
-      <input id="business" placeholder="主要经营业务" />
-      <input id="contactPerson" placeholder="联系人" />
-      <input id="address" placeholder="联系地址" />
-      <input id="postalCode" placeholder="邮编" />
-      <input id="phone" placeholder="联系电话" />
-      <input id="fax" placeholder="传真" />
-      <input id="email" placeholder="邮箱（可选）" />
-      <button onclick="saveProfile()">保存备案草稿</button>
-      <button onclick="submitProfile()">提交备案</button>
-      <h3>企业端：月度填报</h3>
-      <input id="periodKey" placeholder="调查期，如 2026-03" />
-      <input id="initialEmployees" type="number" placeholder="建档期就业人数" />
-      <input id="currentEmployees" type="number" placeholder="调查期就业人数" />
-      <input id="otherReason" placeholder="其他原因" />
-      <input id="decreaseType" placeholder="减少类型" />
-      <input id="mainReason" placeholder="主要原因" />
-      <textarea id="mainReasonDesc" placeholder="主要原因说明"></textarea>
-      <input id="secondReason" placeholder="次要原因" />
-      <textarea id="secondReasonDesc" placeholder="次要原因说明"></textarea>
-      <input id="thirdReason" placeholder="第三原因" />
-      <textarea id="thirdReasonDesc" placeholder="第三原因说明"></textarea>
-      <button onclick="saveReport()">保存填报草稿</button>
-      <button onclick="submitReport()">提交市级审核</button>
-      <button onclick="loadMyReports()">刷新我的历史填报</button>
-      <pre id="myReports"></pre>
+      <div class="backdrop" id="backdrop" onclick="toggleSidebar(false)"></div>
+
+      <main class="content">
+        <div class="mobile-nav">
+          <strong>业务仪表盘</strong>
+          <button onclick="toggleSidebar(true)">菜单</button>
+        </div>
+
+        <div class="topbar">
+          <div>
+            <h2>欢迎，<%= user.username %></h2>
+            <div class="meta">地区：<%= user.regionCode %> | 角色：<%= user.role %></div>
+          </div>
+          <button class="danger" onclick="logout()">退出登录</button>
+        </div>
+
+        <div class="quick-actions" id="quickActions"></div>
+
+        <section class="showcase">
+          <div class="showcase-head">
+            <h3>功能展示中心</h3>
+            <span>纯前端演示，不触发后端逻辑</span>
+          </div>
+          <div class="feature-grid" id="featureGrid"></div>
+        </section>
+
+        <div class="workspace">
+          <div class="panel" id="enterprisePanel" style="display:none;">
+            <h3>企业端：备案维护与提交</h3>
+            <div id="profileRegion" class="meta"></div>
+            <details class="module" open>
+              <summary>备案维护与提交</summary>
+              <div class="split">
+                <input id="orgCode" placeholder="组织机构代码" />
+                <input id="name" placeholder="企业名称" />
+                <input id="type" placeholder="企业性质（如 private/state）" />
+                <input id="industry" placeholder="所属行业（如 manufacture/service）" />
+                <input id="business" placeholder="主要经营业务" />
+                <input id="contactPerson" placeholder="联系人" />
+                <input id="address" placeholder="联系地址" />
+                <input id="postalCode" placeholder="邮编" />
+                <input id="phone" placeholder="联系电话" />
+                <input id="fax" placeholder="传真" />
+                <input id="email" placeholder="邮箱（可选）" />
+              </div>
+              <div class="actions">
+                <button onclick="saveProfile()">保存备案草稿</button>
+                <button class="secondary" onclick="submitProfile()">提交备案</button>
+              </div>
+            </details>
+
+            <details class="module" open>
+              <summary>月度填报</summary>
+              <div class="meta">调查期规则：1-3月使用半月报（如 2026-01-H1/2026-01-H2），4-12月使用整月报（如 2026-04）。</div>
+              <div class="split">
+                <input id="periodKey" placeholder="调查期，如 2026-01-H1 或 2026-04" />
+                <input id="initialEmployees" type="number" placeholder="建档期就业人数" />
+                <input id="currentEmployees" type="number" placeholder="调查期就业人数" />
+                <input id="otherReason" placeholder="其他原因" />
+                <input id="decreaseType" placeholder="减少类型" />
+                <input id="mainReason" placeholder="主要原因" />
+                <textarea id="mainReasonDesc" placeholder="主要原因说明"></textarea>
+                <input id="secondReason" placeholder="次要原因" />
+                <textarea id="secondReasonDesc" placeholder="次要原因说明"></textarea>
+                <input id="thirdReason" placeholder="第三原因" />
+                <textarea id="thirdReasonDesc" placeholder="第三原因说明"></textarea>
+              </div>
+              <div class="actions">
+                <button onclick="saveReport()">保存填报草稿</button>
+                <button class="secondary" onclick="submitReport()">提交市级审核</button>
+                <button onclick="loadMyReports()">刷新我的历史填报</button>
+              </div>
+            </details>
+            <pre id="myReports"></pre>
+          </div>
+
+          <div class="panel" id="cityPanel" style="display:none;">
+            <h3>市级：待审列表</h3>
+            <details class="module" open>
+              <summary>待审查询与审核动作</summary>
+              <div class="split">
+                <input id="cityEnterpriseName" placeholder="企业名筛选" />
+                <input id="cityPeriodKey" placeholder="调查期筛选" />
+                <input id="cityReportId" type="number" placeholder="报告ID" />
+                <textarea id="cityComment" placeholder="审核备注/退回原因"></textarea>
+              </div>
+              <div class="actions">
+                <button onclick="loadCityReports()">查询待审</button>
+                <button class="secondary" onclick="cityReview('approve')">市级通过</button>
+                <button class="danger" onclick="cityReview('reject')">市级退回</button>
+              </div>
+            </details>
+            <pre id="cityReports"></pre>
+          </div>
+
+          <div class="panel" id="provincePanel" style="display:none;">
+            <h3>省级：企业备案审核</h3>
+            <details class="module" open>
+              <summary>企业备案审核</summary>
+              <div class="split">
+                <input id="filingId" type="number" placeholder="企业ID" />
+                <textarea id="filingComment" placeholder="备案审核备注/退回原因"></textarea>
+              </div>
+              <div class="actions">
+                <button onclick="loadFilings()">刷新备案列表</button>
+                <button class="secondary" onclick="reviewFiling('approve')">备案通过</button>
+                <button class="danger" onclick="reviewFiling('reject')">备案退回</button>
+              </div>
+            </details>
+            <pre id="filings"></pre>
+
+            <details class="module" open>
+              <summary>终审与上报</summary>
+              <div class="split">
+                <input id="provinceRegionCode" placeholder="地区筛选，如 530100" />
+                <input id="provincePeriodKey" placeholder="调查期筛选" />
+                <input id="provinceStatus" placeholder="状态筛选，如 pending_province" />
+                <input id="provinceReportId" type="number" placeholder="报告ID" />
+                <textarea id="provinceComment" placeholder="终审备注/退回原因"></textarea>
+              </div>
+              <div class="actions">
+                <button onclick="loadProvinceReports()">查询终审列表</button>
+                <button class="secondary" onclick="provinceReview('approve')">省级通过</button>
+                <button class="danger" onclick="provinceReview('reject')">省级退回</button>
+                <button onclick="provinceReport()">模拟上报部委</button>
+              </div>
+            </details>
+            <pre id="provinceReports"></pre>
+
+            <details class="module">
+              <summary>账号管理（创建市级/省级）</summary>
+              <div class="split">
+                <input id="adminUsername" placeholder="用户名" />
+                <input id="adminPassword" type="password" placeholder="初始密码（至少6位）" />
+                <select id="adminRole">
+                  <option value="city">市级账号</option>
+                  <option value="province">省级账号</option>
+                </select>
+                <input id="adminRegionCode" placeholder="地区代码（创建省级时可忽略）" />
+              </div>
+              <div class="actions">
+                <button class="secondary" onclick="createAdminUser()">创建账号</button>
+                <button onclick="loadAdminUsers()">刷新账号列表</button>
+              </div>
+            </details>
+            <pre id="adminUsers"></pre>
+          </div>
+
+          <div class="panel">
+            <h3>通知发布与浏览</h3>
+            <div class="split">
+              <input id="noticeTitle" placeholder="标题（<=50）" />
+              <input id="publisherUnit" placeholder="发布单位" />
+              <textarea id="noticeContent" placeholder="内容（<=2000）"></textarea>
+            </div>
+            <div class="actions">
+              <button class="secondary" onclick="publishNotice()">发布通知（仅市级/省级）</button>
+              <button onclick="loadNotices()">刷新通知列表</button>
+            </div>
+            <pre id="notices"></pre>
+          </div>
+
+          <pre id="result"></pre>
+        </div>
+      </main>
     </div>
 
-    <div class="panel" id="cityPanel" style="display:none;">
-      <h3>市级：待审列表</h3>
-      <input id="cityEnterpriseName" placeholder="企业名筛选" />
-      <input id="cityPeriodKey" placeholder="调查期筛选" />
-      <button onclick="loadCityReports()">查询待审</button>
-      <input id="cityReportId" type="number" placeholder="报告ID" />
-      <textarea id="cityComment" placeholder="审核备注/退回原因"></textarea>
-      <button onclick="cityReview('approve')">市级通过</button>
-      <button onclick="cityReview('reject')">市级退回</button>
-      <pre id="cityReports"></pre>
+    <div class="feature-overlay" id="featureOverlay" onclick="closeFeatureModal(event)">
+      <div class="feature-modal">
+        <div class="feature-modal-head">
+          <h4 id="featureTitle">功能详情</h4>
+          <button class="danger" onclick="closeFeatureModal()">关闭</button>
+        </div>
+        <div class="feature-modal-body" id="featureContent"></div>
+      </div>
     </div>
-
-    <div class="panel" id="provincePanel" style="display:none;">
-      <h3>省级：企业备案审核</h3>
-      <button onclick="loadFilings()">刷新备案列表</button>
-      <input id="filingId" type="number" placeholder="企业ID" />
-      <textarea id="filingComment" placeholder="备案审核备注/退回原因"></textarea>
-      <button onclick="reviewFiling('approve')">备案通过</button>
-      <button onclick="reviewFiling('reject')">备案退回</button>
-      <pre id="filings"></pre>
-
-      <h3>省级：终审与上报</h3>
-      <input id="provinceRegionCode" placeholder="地区筛选，如 530100" />
-      <input id="provincePeriodKey" placeholder="调查期筛选" />
-      <input id="provinceStatus" placeholder="状态筛选，如 pending_province" />
-      <button onclick="loadProvinceReports()">查询终审列表</button>
-      <input id="provinceReportId" type="number" placeholder="报告ID" />
-      <textarea id="provinceComment" placeholder="终审备注/退回原因"></textarea>
-      <button onclick="provinceReview('approve')">省级通过</button>
-      <button onclick="provinceReview('reject')">省级退回</button>
-      <button onclick="provinceReport()">模拟上报部委</button>
-      <pre id="provinceReports"></pre>
-    </div>
-
-    <div class="panel">
-      <h3>通知发布与浏览</h3>
-      <input id="noticeTitle" placeholder="标题（<=50）" />
-      <textarea id="noticeContent" placeholder="内容（<=2000）"></textarea>
-      <input id="publisherUnit" placeholder="发布单位" />
-      <button onclick="publishNotice()">发布通知（仅市级/省级）</button>
-      <button onclick="loadNotices()">刷新通知列表</button>
-      <pre id="notices"></pre>
-    </div>
-
-    <pre id="result"></pre>
 
     <script>
       const role = '<%= user.role %>';
+      const featureMap = {
+        board: {
+          title: '统计大屏预览',
+          description: '展示关键指标、同比与环比走势占位内容。',
+          content: `
+            <p>这里是大屏模块的演示内容，可用于答辩或课堂展示。</p>
+            <div class="demo-kpis">
+              <div class="demo-kpi"><strong>12,486</strong><span>本月就业人数</span></div>
+              <div class="demo-kpi"><strong>1,125</strong><span>失业变动人数</span></div>
+              <div class="demo-kpi"><strong>94.6%</strong><span>备案完整率</span></div>
+              <div class="demo-kpi"><strong>3.2%</strong><span>环比改善</span></div>
+            </div>
+            <pre>{"chart": "趋势图占位", "note": "后续可接 ECharts"}</pre>
+          `
+        },
+        export: {
+          title: '报表导出演示',
+          description: '模拟导出 Excel、PDF、CSV 的交互流程。',
+          content: `
+            <p>你可以把这里理解为“导出向导”的前端原型：</p>
+            <div class="actions">
+              <button onclick="mockAction('已生成 Excel 示例文件（演示）')">导出 Excel</button>
+              <button class="secondary" onclick="mockAction('已生成 PDF 示例文件（演示）')">导出 PDF</button>
+              <button onclick="mockAction('已生成 CSV 示例文件（演示）')">导出 CSV</button>
+            </div>
+            <pre>筛选条件：地区=全部，调查期=最近12个月，状态=已审核</pre>
+          `
+        },
+        subscribe: {
+          title: '消息订阅中心',
+          description: '模拟消息规则配置和订阅开关。',
+          content: `
+            <p>以下为演示开关，不会保存到后端。</p>
+            <div class="split">
+              <label><input type="checkbox" checked> 新增待审自动提醒</label>
+              <label><input type="checkbox" checked> 退回任务短信提醒</label>
+              <label><input type="checkbox"> 月报截止前三天提醒</label>
+              <label><input type="checkbox" checked> 省级终审结果推送</label>
+            </div>
+            <div class="actions"><button class="secondary" onclick="mockAction('订阅设置已暂存（演示）')">保存演示设置</button></div>
+          `
+        },
+        flow: {
+          title: '流程追踪视图',
+          description: '模拟查看某条数据的全链路审核状态。',
+          content: `
+            <p>示例流程：企业填报 -> 市级审核 -> 省级终审 -> 上报。</p>
+            <pre>[2026-04-03 09:10] 企业提交 #R20260403008\n[2026-04-04 11:20] 市级通过（备注：数据完整）\n[2026-04-05 16:02] 省级复核中\n[2026-04-05 16:45] 省级通过，待上报</pre>
+          `
+        },
+        dictionary: {
+          title: '数据字典浏览',
+          description: '展示字典项查询和字段解释原型。',
+          content: `
+            <div class="split">
+              <input placeholder="输入字段关键字，如 mainReason" />
+              <button onclick="mockAction('字典查询完成（演示）')">查询字段</button>
+            </div>
+            <pre>{"field":"mainReason","label":"主要原因","type":"string","required":true}</pre>
+          `
+        },
+        help: {
+          title: '系统帮助与引导',
+          description: '给老师演示时可快速打开的帮助页。',
+          content: `
+            <p>建议演示路径：</p>
+            <pre>1. 登录（企业/市级/省级）\n2. 填报或审核\n3. 打开本功能展示中心\n4. 演示导出、追踪、订阅等扩展能力</pre>
+            <div class="actions"><button onclick="mockAction('已开启新手引导演示')">启动引导</button></div>
+          `
+        }
+      };
       document.getElementById('enterprisePanel').style.display = role === 'enterprise' ? 'block' : 'none';
       document.getElementById('cityPanel').style.display = role === 'city' ? 'block' : 'none';
       document.getElementById('provincePanel').style.display = role === 'province' ? 'block' : 'none';
+
+      function toggleSidebar(open) {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+        if (open) {
+          sidebar.classList.add('open');
+          backdrop.classList.add('show');
+        } else {
+          sidebar.classList.remove('open');
+          backdrop.classList.remove('show');
+        }
+      }
+
+      function renderQuickActions() {
+        const container = document.getElementById('quickActions');
+        if (role === 'enterprise') {
+          container.innerHTML = [
+            '<button onclick="loadMyReports()">快速查看我的历史填报</button>',
+            '<button class="secondary" onclick="submitProfile()">快速提交备案</button>',
+            '<button class="secondary" onclick="submitReport()">快速提交月报</button>',
+            '<button onclick="loadNotices()">刷新通知</button>'
+          ].join('');
+          return;
+        }
+
+        if (role === 'city') {
+          container.innerHTML = [
+            '<button onclick="loadCityReports()">快速查询待审</button>',
+            '<button class="secondary" onclick="loadNotices()">刷新通知</button>'
+          ].join('');
+          return;
+        }
+
+        if (role === 'province') {
+          container.innerHTML = [
+            '<button onclick="loadFilings()">刷新备案列表</button>',
+            '<button onclick="loadProvinceReports()">刷新终审列表</button>',
+            '<button class="secondary" onclick="loadAdminUsers()">刷新账号列表</button>',
+            '<button class="secondary" onclick="loadNotices()">刷新通知</button>'
+          ].join('');
+        }
+      }
+
+      function renderFeatureButtons() {
+        const list = [
+          { key: 'board', label: '统计大屏', desc: '查看可视化概览' },
+          { key: 'export', label: '报表导出', desc: 'Excel / PDF / CSV' },
+          { key: 'subscribe', label: '消息订阅', desc: '规则配置演示' },
+          { key: 'flow', label: '流程追踪', desc: '全链路状态查看' },
+          { key: 'dictionary', label: '数据字典', desc: '字段解释与示例' },
+          { key: 'help', label: '系统帮助', desc: '演示指南与引导' }
+        ];
+
+        const html = list.map((item) => `
+          <button class="feature-btn" onclick="openFeatureModal('${item.key}')">
+            <strong>${item.label}</strong>
+            <span>${item.desc}</span>
+          </button>
+        `).join('');
+
+        featureGrid.innerHTML = html;
+      }
+
+      function openFeatureModal(key) {
+        const feature = featureMap[key];
+        if (!feature) return;
+        featureTitle.textContent = feature.title;
+        featureContent.innerHTML = `<p class="meta">${feature.description}</p>${feature.content}`;
+        featureOverlay.classList.add('show');
+      }
+
+      function closeFeatureModal(event) {
+        if (event && event.target !== featureOverlay) return;
+        featureOverlay.classList.remove('show');
+      }
+
+      function mockAction(text) {
+        result.textContent = JSON.stringify({ code: 0, message: text, data: null }, null, 2);
+      }
 
       async function api(url, options = {}) {
         const res = await fetch(url, {
@@ -219,6 +943,25 @@
         await api(`/api/province/reports/${provinceReportId.value}/report`, { method: 'POST' });
       }
 
+      async function createAdminUser() {
+        await api('/api/admin/users', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: adminUsername.value,
+            password: adminPassword.value,
+            role: adminRole.value,
+            regionCode: adminRegionCode.value
+          })
+        });
+      }
+
+      async function loadAdminUsers() {
+        const data = await api('/api/admin/users');
+        if (data.code === 0) {
+          adminUsers.textContent = JSON.stringify(data.data, null, 2);
+        }
+      }
+
       async function publishNotice() {
         await api('/api/notices', {
           method: 'POST',
@@ -236,6 +979,8 @@
       }
 
       async function init() {
+        renderQuickActions();
+        renderFeatureButtons();
         const me = await api('/api/me');
         if (me.code === 0 && me.data.enterprise) {
           profileRegion.textContent = `所属地区（只读）: ${me.data.enterprise.regionCode}`;
@@ -251,8 +996,17 @@
           fax.value = me.data.enterprise.fax || '';
           email.value = me.data.enterprise.email || '';
         }
+        if (role === 'province') {
+          await loadAdminUsers();
+        }
         await loadNotices();
       }
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) {
+          toggleSidebar(false);
+        }
+      });
 
       init();
     </script>
