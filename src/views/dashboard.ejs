@@ -139,6 +139,36 @@
         font-size: 13px;
       }
 
+      .mobile-flow-tip {
+        display: none;
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: #fff;
+        box-shadow: var(--shadow);
+        padding: 12px;
+      }
+
+      .mobile-flow-tip h3 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .mobile-flow-tip .meta {
+        margin: 6px 0 0;
+        font-size: 12px;
+      }
+
+      .mobile-flow-links {
+        margin-top: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .mobile-flow-links button {
+        width: 100%;
+      }
+
       .showcase {
         margin-top: 14px;
         border: 1px solid var(--line);
@@ -478,6 +508,32 @@
           background: rgba(7, 16, 28, 0.36);
           z-index: 20;
         }
+
+        .mobile-flow-tip {
+          display: block;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        input, select, textarea {
+          min-height: 42px;
+          font-size: 15px;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .actions button,
+        .quick-actions button,
+        .feature-btn {
+          width: 100%;
+          min-height: 44px;
+        }
       }
     </style>
   </head>
@@ -512,6 +568,8 @@
         </div>
 
         <div class="quick-actions" id="quickActions"></div>
+
+        <section class="mobile-flow-tip" id="mobileFlowTip"></section>
 
         <section class="showcase">
           <div class="showcase-head">
@@ -791,6 +849,54 @@
         }
       }
 
+      function renderMobileFlowTip() {
+        const container = document.getElementById('mobileFlowTip');
+        if (!container) return;
+
+        if (role === 'enterprise') {
+          container.innerHTML = [
+            '<h3>手机端快捷流程</h3>',
+            '<p class="meta">企业填报场景：先备案，再填报，再提交。</p>',
+            '<div class="mobile-flow-links">',
+            '<button onclick="scrollToPanel(\'enterprisePanel\')">进入企业填报区</button>',
+            '<button class="secondary" onclick="submitProfile()">直接提交备案</button>',
+            '<button class="secondary" onclick="submitReport()">直接提交本期月报</button>',
+            '</div>'
+          ].join('');
+          return;
+        }
+
+        if (role === 'city') {
+          container.innerHTML = [
+            '<h3>手机端快捷流程</h3>',
+            '<p class="meta">市级审核场景：查询待审并执行通过/退回。</p>',
+            '<div class="mobile-flow-links">',
+            '<button onclick="scrollToPanel(\'cityPanel\')">进入市级审核区</button>',
+            '<button class="secondary" onclick="loadCityReports()">快速查询待审列表</button>',
+            '</div>'
+          ].join('');
+          return;
+        }
+
+        if (role === 'province') {
+          container.innerHTML = [
+            '<h3>手机端快捷流程</h3>',
+            '<p class="meta">省级审核场景：备案审核 + 终审上报。</p>',
+            '<div class="mobile-flow-links">',
+            '<button onclick="scrollToPanel(\'provincePanel\')">进入省级审核区</button>',
+            '<button class="secondary" onclick="loadFilings()">快速刷新备案审核</button>',
+            '<button class="secondary" onclick="loadProvinceReports()">快速刷新终审列表</button>',
+            '</div>'
+          ].join('');
+        }
+      }
+
+      function scrollToPanel(id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
       function renderFeatureButtons() {
         const list = [
           { key: 'board', label: '统计大屏', desc: '查看可视化概览' },
@@ -980,6 +1086,7 @@
 
       async function init() {
         renderQuickActions();
+        renderMobileFlowTip();
         renderFeatureButtons();
         const me = await api('/api/me');
         if (me.code === 0 && me.data.enterprise) {
